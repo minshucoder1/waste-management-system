@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Waste Management Solution</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600;700&family=Pacifico&display=swap" rel="stylesheet">
+    <style>
+        
+        :root {
+            /* Bright & Energetic Theme */
+            --background: 49 100% 96%;     /* HSL for #FFFBE6 (soft pale yellow) */
+            --primary: 74 97% 45%;         /* HSL for #A4DE02 (vivid lime green) */
+            --secondary: 42 100% 63%;      /* HSL for #FFD447 (warm golden yellow) */
+            --text-foreground: 0 0% 100%; /* HSL for #ffffff (dark neutral gray) */
+            --accent: 151 100% 25%;        /* HSL for #008037 (deep green) */
+            
+            /* General */
+            --card: 74 100% 20%;           /* Darker green for card backgrounds (derived from previous theme logic, adjusted for new palette) */
+            --card-foreground: 0 0% 100%;   /* White */
+            --border: 74 100% 30%;          /* Darker primary for borders */
+            --radius: 0.5rem;
+        }
+        
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: hsl(var(--background)); 
+            color: hsl(var(--text-foreground));
+        }
+
+        #sign-page {
+            font-family: 'Montserrat', sans-serif;
+        }
+        #sign-page h2 {
+            font-family: 'Pacifico', cursive;
+            font-weight: 400; /* Pacifico is best at a normal weight */
+        }
+        /* Specific login page card and button colors */
+        #sign-in-form, #sign-up-form {
+            background-color: hsl(var(--accent)); /* Deep green for login card */
+        }
+        #sign-page label, #sign-page p, #sign-page button.hover\:underline {
+            color: hsl(var(--card-foreground)); /* White text on deep green card */
+        }
+        #sign-page input {
+            background-color: hsla(0, 0%, 100%, 0.2); /* Slightly transparent white for inputs */
+            border-color: hsla(0, 0%, 100%, 0.5);
+            color: hsl(var(--card-foreground));
+        }
+        #sign-page input::placeholder {
+            color: hsla(0, 0%, 100%, 0.7);
+        }
+        #sign-page button:not(.hover\:underline) { /* Solid login buttons */
+            background-color: hsl(var(--primary)); /* Vivid lime green */
+            color: hsl(var(--text-foreground)); /* Dark gray text on lime green button */
+        }
+        #sign-page button:not(.hover\:underline):hover {
+            background-color: hsl(var(--primary) / 0.9);
+        }
+
+
+        .card {
+            background-color: hsl(var(--card)); /* Uses the darker green */
+            border: 1px solid hsl(var(--border) / 0.5);
+            border-radius: var(--radius);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            color: hsl(var(--card-foreground)); /* White text on card backgrounds */
+        }
+        .card p, .card h3 {
+             color: hsl(var(--card-foreground));
+        }
+        .card .font-extrabold { /* For critical bins, total bins etc. */
+            color: hsl(var(--primary)); /* Use primary for these numbers */
+        }
+
+        .btn-primary {
+            background-color: transparent;
+            color: hsl(var(--primary));
+            border: 2px solid hsl(var(--primary));
+            border-radius: var(--radius);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .btn-primary:hover {
+            background-color: hsl(var(--primary));
+            color: hsl(var(--text-foreground)); /* Dark gray text on hover */
+        }
+
+        .tab-button {
+            color: hsl(var(--text-foreground)); /* Default text color for tabs */
+            background-color: transparent;
+        }
+        .tab-button.active {
+            background-color: hsl(var(--secondary)); /* Warm golden yellow for active tab background */
+            border-left: 4px solid hsl(var(--primary)); /* Vivid lime green accent */
+            font-weight: 600;
+            color: hsl(var(--text-foreground)); /* Dark gray text on active tab */
+        }
+        .tab-button:hover:not(.active) {
+            background-color: hsla(var(--primary), 0.1); /* Light hover effect */
+        }
+
+        /* Sidebar specific adjustments */
+        #sidebar {
+            background-color: hsl(var(--accent)); /* Deep green for sidebar */
+            border-color: hsla(var(--primary), 0.2);
+            color: hsl(var(--card-foreground)); /* White text for sidebar */
+        }
+        #sidebar h1 {
+            color: hsl(var(--card-foreground));
+            border-color: hsla(var(--primary), 0.2);
+        }
+        #sidebar h1 span {
+            color: hsl(var(--primary)); /* Vivid lime green checkmark */
+        }
+        #sidebar nav button {
+            color: hsl(var(--card-foreground)); /* White for non-active sidebar links */
+        }
+        #sidebar nav button.active {
+            color: hsl(var(--text-foreground)); /* Dark gray for active sidebar link */
+            background-color: hsl(var(--secondary)); /* Golden yellow for active sidebar link background */
+            border-left: 4px solid hsl(var(--primary)); /* Lime green accent */
+        }
+        #sidebar nav button:hover:not(.active) {
+            background-color: hsla(var(--primary), 0.1); /* Light hover */
+        }
+        #sidebar p {
+            color: hsla(var(--card-foreground), 0.8); /* Slightly faded white for sidebar text */
+        }
+
+        /* Section headings */
+        main h2 {
+            color: hsl(var(--accent)); /* Deep green for main section headings */
+        }
+        main p.text-[#00796B] { /* Original specific class for section intros */
+            color: hsl(var(--text-foreground) / 0.8);
+        }
+        .text-green-400 { /* Specific classes for 'Live Data Feed', 'Earn points!' etc. */
+            color: hsl(var(--primary));
+        }
+
+        /* Bin Fill Status */
+        .fill-bar {
+            transition: width 1s ease-in-out;
+        }
+        .bg-red-500 { background-color: #EF4444; } /* Retaining red for critical */
+        .bg-yellow-500 { background-color: #FBBF24; } /* Retaining yellow for high */
+        .bg-green-500 { background-color: hsl(var(--primary)); } /* Use primary for good status */
+        .bg-cyan-900\/50 { background-color: hsla(var(--accent), 0.5); } /* Adjusted from teal to deep green */
+        .text-cyan-100\/90, .text-cyan-100\/80, .text-cyan-100\/70, .text-cyan-100\/60 {
+            color: hsla(var(--card-foreground), var(--tw-text-opacity, 1)); /* White text on dark cards */
+            --tw-text-opacity: 0.9; /* Adjust opacity as needed */
+        }
+
+        /* Route Optimization */
+        #route-opt-section input, #route-opt-section select, #route-opt-section textarea {
+            background-color: hsla(var(--background), 0.5); /* Semi-transparent pale yellow */
+            border-color: hsl(var(--primary));
+            color: hsl(var(--text-foreground));
+        }
+        #route-opt-section input::placeholder, #route-opt-section textarea::placeholder {
+            color: hsla(var(--text-foreground), 0.7);
+        }
+        #route-output {
+            background-color: hsla(var(--primary), 0.2); /* Light primary background for output */
+            color: hsl(var(--text-foreground));
+        }
+        #route-output p {
+            color: hsl(var(--text-foreground));
+        }
+        #tracking-status {
+            color: hsl(var(--secondary)); /* Golden yellow for status text */
+        }
+        .checkpoint {
+             background-color: hsl(var(--primary)); /* Use primary for checkpoints */
+             border-color: hsl(var(--accent)); /* Deep green border */
+        }
+        .checkpoint.active {
+             background-color: hsl(var(--accent)); /* Deep green when active */
+             transform: translateX(-50%) scale(1.5);
+        }
+        .checkpoint-label {
+            color: hsl(var(--text-foreground));
+        }
+
+
+        /* Reporting Portal */
+        .border-red-500 { border-color: #EF4444; } /* Retain red for critical reports */
+        
+        /* Citizen Hub */
+        #citizen-hub-section input, #citizen-hub-section select, #citizen-hub-section textarea {
+            background-color: hsla(var(--background), 0.5); /* Semi-transparent pale yellow */
+            border-color: hsl(var(--primary));
+            color: hsl(var(--text-foreground));
+        }
+        #citizen-hub-section input::placeholder, #citizen-hub-section textarea::placeholder {
+            color: hsla(var(--text-foreground), 0.7);
+        }
+        .text-blue-400 { /* For resolution rate */
+            color: #60A5FA; /* Retaining a clear blue */
+        }
+        .text-yellow-400 { /* For reward points */
+            color: hsl(var(--secondary)); /* Warm golden yellow */
+        }
+
+        /* Message Box */
+        .bg-green-800 { background-color: hsl(var(--accent)); } /* Deep green for success */
+        .bg-red-700 { background-color: #B91C1C; } /* Retaining red for error */
+        .bg-blue-700 { background-color: #1D4ED8; } /* Retaining blue for info */
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <div id="sign-page" class="fixed inset-0 bg-[#FFFBE6] flex items-center justify-center z-50 p-4">
+        <div class="w-full max-w-md">
+            <div id="sign-in-form" class="bg-[#008037] p-8 space-y-6 rounded-lg shadow-xl">
+                <h2 class="text-4xl text-center text-white">Sign In</h2>
+                <p class="text-center text-white/90">Welcome back to the Smart Waste Hub.</p>
+                <div>
+                    <label for="signin-id" class="block text-sm font-medium text-white/90 mb-2">User ID / Operator ID</label>
+                    <input type="text" id="signin-id" value="operator-01" class="w-full p-3 rounded-md bg-white/20 text-white border border-white/50 focus:ring-2 focus:ring-white placeholder-gray-300">
+                </div>
+                <div>
+                    <label for="signin-password" class="block text-sm font-medium text-white/90 mb-2">Password</label>
+                    <input type="password" id="signin-password" value="password123" class="w-full p-3 rounded-md bg-white/20 text-white border border-white/50 focus:ring-2 focus:ring-white placeholder-gray-300">
+                </div>
+                <button onclick="simulateLogin()" class="w-full py-3 font-semibold shadow-lg rounded-md bg-[#A4DE02] text-[#2E2E2E] hover:bg-[#92C402] transition">
+                    Sign In
+                </button>
+                <p class="text-center text-sm text-white/80">
+                    Don't have an account? 
+                    <button onclick="toggleSignForms()" class="font-semibold text-gray-200 hover:underline">Sign up now</button>
+                </p>
+            </div>
+
+            <div id="sign-up-form" class="bg-[#008037] p-8 space-y-4 rounded-lg shadow-xl hidden">
+                <h2 class="text-4xl text-center text-white">Create Account</h2>
+                <p class="text-center text-white/90">Join the smart waste management initiative.</p>
+                <div>
+                    <label for="signup-name" class="block text-sm font-medium text-white/90 mb-2">Full Name</label>
+                    <input type="text" id="signup-name" placeholder="e.g., John Doe" class="w-full p-3 rounded-md bg-white/20 text-white border border-white/50 focus:ring-2 focus:ring-white placeholder-gray-300">
+                </div>
+                <div>
+                    <label for="signup-id" class="block text-sm font-medium text-white/90 mb-2">User ID</label>
+                    <input type="text" id="signup-id" placeholder="Choose a unique ID" class="w-full p-3 rounded-md bg-white/20 text-white border border-white/50 focus:ring-2 focus:ring-white placeholder-gray-300">
+                </div>
+                <div>
+                    <label for="signup-password" class="block text-sm font-medium text-white/90 mb-2">Password</label>
+                    <input type="password" id="signup-password" placeholder="••••••••" class="w-full p-3 rounded-md bg-white/20 text-white border border-white/50 focus:ring-2 focus:ring-white placeholder-gray-300">
+                </div>
+                 <div>
+                    <label for="signup-confirm-password" class="block text-sm font-medium text-white/90 mb-2">Confirm Password</label>
+                    <input type="password" id="signup-confirm-password" placeholder="••••••••" class="w-full p-3 rounded-md bg-white/20 text-white border border-white/50 focus:ring-2 focus:ring-white placeholder-gray-300">
+                </div>
+                <button onclick="simulateSignUp()" class="w-full py-3 font-semibold shadow-lg rounded-md bg-[#A4DE02] text-[#2E2E2E] hover:bg-[#92C402] transition">
+                    Create Account
+                </button>
+                <p class="text-center text-sm text-white/80">
+                    Already have an account? 
+                    <button onclick="toggleSignForms()" class="font-semibold text-gray-200 hover:underline">Sign in instead</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="main-app" class="flex flex-col lg:flex-row min-h-screen hidden">
+        
+        <aside id="sidebar" class="bg-[#008037] w-full lg:w-64 p-4 lg:p-6 shadow-lg lg:shadow-none border-b lg:border-r border-cyan-100/10">
+            <h1 class="text-2xl font-bold text-white mb-8 border-b border-cyan-100/20 pb-3">
+                <span class="text-[#A4DE02]">&#10003;</span> Smart Waste Hub
+            </h1>
+            
+            <nav class="space-y-2">
+                <button onclick="showSection('dashboard')" class="tab-button active w-full text-left p-3 rounded-r-lg transition duration-150 ease-in-out text-[#2E2E2E] hover:bg-white/10">
+                    &#128200; Admin Dashboard
+                </button>
+                <button onclick="showSection('route-opt')" class="tab-button w-full text-left p-3 rounded-r-lg transition duration-150 ease-in-out text-white/80 hover:bg-white/10">
+                    &#128666; Route Optimization
+                </button>
+                <button onclick="showSection('reporting')" class="tab-button w-full text-left p-3 rounded-r-lg transition duration-150 ease-in-out text-white/80 hover:bg-white/10">
+                    &#128202; Compliance & Reporting
+                </button>
+                <button onclick="showSection('citizen-hub')" class="tab-button w-full text-left p-3 rounded-r-lg transition duration-150 ease-in-out text-white/80 hover:bg-white/10">
+                    &#127881; Citizen Engagement
+                </button>
+            </nav>
+            
+            <div class="mt-12 pt-4 border-t border-cyan-100/20">
+                <p class="text-sm text-white/70">Theme: Bright & Energetic</p>
+                <p class="text-sm text-white/70">Problem ID: SIH25060</p>
+            </div>
+        </aside>
+
+        <main class="flex-1 p-4 sm:p-8 overflow-y-auto">
+            
+            <section id="dashboard-section" class="hidden space-y-8">
+                <h2 class="text-4xl font-extrabold text-[#008037]">Real-Time Waste Monitoring</h2>
+                <p class="text-[#2E2E2E]">Monitor fill levels and status across the city. Prevents overflow and reduces litter in public spaces.</p>
+
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="card p-5 text-center">
+                        <p class="text-5xl font-extrabold text-[#A4DE02]" id="total-bins">54</p>
+                        <p class="text-white/80">Total Smart Bins</p>
+                    </div>
+                    <div class="card p-5 text-center">
+                        <p class="text-5xl font-extrabold text-red-400" id="critical-bins">4</p>
+                        <p class="text-white/80">Critical (> 80% Full)</p>
+                    </div>
+                    <div class="card p-5 text-center">
+                        <p class="text-5xl font-extrabold text-[#FFD447]" id="trucks-active">8</p>
+                        <p class="text-white/80">Active Fleet (GPS Tracked)</p>
+                    </div>
+                </div>
+                
+                <div class="card p-6">
+                    <h3 class="text-xl font-semibold mb-4 border-b border-cyan-400/20 pb-2 flex justify-between items-center text-white">
+                        Dehradun Bin Map View
+                        <span class="text-sm text-[#A4DE02] font-normal">&#x1F5FA; Live Data Feed</span>
+                    </h3>
+                   <div id="map" class="relative w-full h-80 rounded-md overflow-hidden"></div>
+                
+                    <div class="flex justify-around text-sm mt-4 p-3 bg-cyan-900/50 rounded-md">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-3 rounded-full bg-green-500"></span>
+                            <span class="text-white/90">Low Fill (&lt;50%)</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+                            <span class="text-white/90">Medium/High Fill (50-80%)</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                            <span class="text-white/90">Critical Fill (&gt;80%)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card p-6">
+                    <h3 class="text-xl font-semibold mb-4 border-b border-cyan-400/20 pb-2 text-white">Bin Fill Status (Last Updated: <span id="last-update">--</span>)</h3>
+                    <div id="bin-list" class="space-y-4">
+                        </div>
+                </div>
+            </section>
+
+            <section id="route-opt-section" class="hidden space-y-8">
+                <h2 class="text-4xl font-extrabold text-[#008037]">AI Route Optimization</h2>
+                <p class="text-[#2E2E2E]">Calculates the most efficient route based on real-time bin levels, cutting fuel and operational costs by up to 80%.</p>
+
+                <div class="card p-6 max-w-2xl">
+                    <h3 class="text-2xl font-semibold mb-4 text-white">Generate Optimized Route</h3>
+                    
+                    <div class="space-y-4">
+                        <label for="truck-id" class="block text-sm font-medium text-white/80">Truck/Operator ID</label>
+                        <input type="text" id="truck-id" value="TRK-401" class="w-full p-3 rounded-md bg-[#FFFBE6]/50 text-[#2E2E2E] border border-[#A4DE02] focus:ring-2 focus:ring-[#A4DE02]">
+                        
+                        <label for="start-location" class="block text-sm font-medium text-white/80">Starting Location</label>
+                        <input type="text" id="start-location" value="Depot Zone A" class="w-full p-3 rounded-md bg-[#FFFBE6]/50 text-[#2E2E2E] border border-[#A4DE02] focus:ring-2 focus:ring-[#A4DE02]">
+                        
+                        <button onclick="calculateRoute()" class="btn-primary w-full py-3 font-semibold">
+                            &#128640; Calculate Optimal Route
+                        </button>
+                    </div>
+                    
+                    <div id="route-output" class="mt-6 p-4 bg-[#A4DE02]/20 rounded-lg hidden">
+                        <p class="text-[#2E2E2E] font-medium mb-2">Optimization Result:</p>
+                        <p id="route-details" class="text-[#2E2E2E] text-sm"></p>
+                    </div>
+                </div>
+                
+                <div id="truck-tracking-card" class="card p-6 hidden">
+                     <h3 class="text-2xl font-semibold mb-2 text-white">Live Route Tracking</h3>
+                     <p id="tracking-status" class="text-sm text-[#FFD447] mb-6 font-semibold">Initializing route...</p>
+                     
+                     <div class="w-full pt-8 pb-4">
+                         <div id="tracking-map" class="relative w-full h-4">
+                             <div class="absolute top-1/2 -translate-y-1/2 w-full h-1 bg-gray-600 rounded-full"></div>
+                             <div id="truck-icon" class="absolute top-1/2 -translate-y-1/2 text-3xl" style="left: 0%;">🚚</div>
+                             </div>
+                     </div>
+                </div>
+                </section>
+            
+            <section id="reporting-portal-section" class="hidden space-y-8">
+                <h2 class="text-4xl font-extrabold text-[#008037]">Compliance & Reporting Portal</h2>
+                <p class="text-[#2E2E2E]">Monitor overall system health, compliance rates, and track citizen-reported issues.</p>
+                
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="card p-5 text-center">
+                        <p class="text-5xl font-extrabold text-[#A4DE02]" id="compliance-rate">98.5%</p>
+                        <p class="text-white/80">Avg. Collection Compliance</p>
+                    </div>
+                    <div class="card p-5 text-center">
+                        <p class="text-5xl font-extrabold text-blue-400" id="resolution-rate">95%</p>
+                        <p class="text-white/80">Issue Resolution Rate (7-day)</p>
+                    </div>
+                    <div class="card p-5 text-center">
+                        <p class="text-5xl font-extrabold text-red-400" id="open-reports">2</p>
+                        <p class="text-white/80">Open Citizen Reports</p>
+                    </div>
+                </div>
+
+                <div class="card p-6">
+                    <h3 class="text-xl font-semibold mb-4 border-b border-cyan-400/20 pb-2 text-white">Active Citizen Reports (<span id="report-count">0</span>)</h3>
+                    <div id="issue-list" class="space-y-4">
+                        <p id="no-reports-msg" class="text-white/70">No open reports. All clear!</p>
+                        </div>
+                    <button onclick="updateReportingPortal()" class="btn-primary mt-4 px-4 py-2 text-sm font-semibold">
+                        &#8635; Refresh Reports
+                    </button>
+                </div>
+            </section>
+
+            <section id="citizen-hub-section" class="hidden space-y-8">
+                <h2 class="text-4xl font-extrabold text-[#008037]">Citizen Engagement & Rewards</h2>
+                <p class="text-[#FFFFFF]">Encourage participation by rewarding citizens for proper waste disposal and reporting. <span class="text-[#A4DE02] font-medium">Earn points to encourage participation!</span></p>
+
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="card p-5 text-center md:col-span-1">
+                        <p class="text-5xl font-extrabold text-[#FFD447]" id="reward-points">1,450</p>
+                        <p class="text-white/80">Your Reward Points</p>
+                        <p class="text-sm text-[#A4DE02] mt-2 font-semibold" id="reward-rupees">Equivalent to ₹0.00</p>
+                        <button onclick="redeemPoints()" class="btn-primary mt-4 w-full py-2 px-4 font-semibold">
+                            Redeem Now
+                        </button>
+                    </div>
+                 <div class="card p-6 md:col-span-2">
+                 <h3 class="text-2xl font-semibold mb-4 text-white">Report Waste or Request Pickup</h3>
+                 <div class="space-y-4">
+                     <select id="garbage-type" class="w-full p-3 rounded-md bg-[#008037]/70 text-white border border-[#A4DE02]/50 focus:ring-2 focus:ring-[#A4DE02]">
+                         <option class="text-black">Select Garbage Type</option>
+                         <option class="text-black">Dry/Recyclable</option>
+                         <option class="text-black">Wet/Organic</option>
+                         <option class="text-black">E-Waste</option>
+                         <option class="text-black">Illegal Dumping/Overflowing Bin</option>
+                     </select>
+                     
+                     <input type="text" id="citizen-location" placeholder="Your Location (e.g., House No. 12, Sector 5)" class="w-full p-3 rounded-md bg-[#008037]/70 text-white border border-[#A4DE02]/50 focus:ring-2 focus:ring-[#A4DE02] placeholder-gray-300">
+                     
+                     <textarea id="notes" placeholder="Notes (e.g., approx amount, special instructions)" rows="2" class="w-full p-3 rounded-md bg-[#008037]/70 text-white border border-[#A4DE02]/50 focus:ring-2 focus:ring-[#A4DE02] placeholder-gray-300"></textarea>
+
+                     <button onclick="reportWaste()" class="btn-primary w-full py-3 font-semibold">
+                         Submit Report & Earn Points
+                     </button>
+                 </div>
+             </div>
+                </div>
+            </section>
+
+            <div id="message-box" class="fixed bottom-4 right-4 bg-green-800 text-white p-4 rounded-lg shadow-xl z-50 transition-transform duration-300 transform translate-x-full" style="display: none;">
+                Message goes here.
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        const sections = {
+            'dashboard': 'dashboard-section',
+            'route-opt': 'route-opt-section',
+            'reporting': 'reporting-portal-section', 
+            'citizen-hub': 'citizen-hub-section'
+        };
+
+        let binData = [
+            { id: 'B-001', location: 'Main Market Square', fill: 95, status: 'Critical', coords: [30.3255, 78.0413] },
+            { id: 'B-002', location: 'Residential Block C', fill: 78, status: 'High', coords: [30.3180, 78.0250] },
+            { id: 'B-003', location: 'City Park North', fill: 30, status: 'Low', coords: [30.3398, 78.0385] },
+            { id: 'B-004', location: 'Industrial Zone', fill: 85, status: 'Critical', coords: [30.2915, 78.0022] },
+            { id: 'B-005', location: 'School Road', fill: 62, status: 'Medium', coords: [30.3200, 78.0322] }
+        ];
+        
+        let reportData = [
+            { id: 101, type: 'Illegal Dumping/Overflowing Bin', location: 'Near Sector 5 Park', notes: 'Large pile of construction debris.', status: 'Open', date: 'Oct 9, 2025, 11:08 AM' },
+            { id: 102, type: 'E-Waste', location: 'House No. 45, Gandhi Street', notes: 'Old monitor and printer ready for pickup.', status: 'Open', date: 'Oct 9, 2025, 10:55 AM' }
+        ];
+
+        let map; 
+        let markers = {};
+
+        function toggleSignForms() {
+            document.getElementById('sign-in-form').classList.toggle('hidden');
+            document.getElementById('sign-up-form').classList.toggle('hidden');
+        }
+
+        function simulateSignUp() {
+            const name = document.getElementById('signup-name').value;
+            const userId = document.getElementById('signup-id').value;
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('signup-confirm-password').value;
+
+            if (!name || !userId || !password) {
+                showMessage('Please fill in all fields.', 'error');
+                return;
+            }
+            if (password !== confirmPassword) {
+                showMessage('Passwords do not match.', 'error');
+                return;
+            }
+
+            showMessage(`Account for ${name} created successfully! Please sign in.`, 'success');
+            toggleSignForms();
+        }
+
+        function simulateLogin() {
+            const loginInput = document.getElementById('signin-id').value.trim();
+            const passwordInput = document.getElementById('signin-password').value.trim();
+
+            if (loginInput === '' || passwordInput === '') {
+                showMessage("Please enter your User ID and Password.", 'info');
+                return;
+            }
+
+            document.getElementById('sign-page').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            
+            showMessage(`Welcome, ${loginInput}! You have successfully logged in.`, 'success');
+            
+            initializeAppUI();
+        }
+
+        function initializeAppUI() {
+            map = L.map('map').setView([30.3165, 78.0322], 13);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                subdomains: 'abcd',
+                maxZoom: 20
+            }).addTo(map);
+
+            showSection('dashboard');
+            
+            setInterval(function() {
+                binData = binData.map(bin => {
+                    if (Math.random() < 0.4) {
+                        const delta = Math.floor(Math.random() * 5) - 2;
+                        bin.fill = Math.min(100, Math.max(0, bin.fill + delta));
+                        if (bin.fill >= 80) bin.status = 'Critical';
+                        else if (bin.fill >= 50) bin.status = 'High';
+                        else bin.status = 'Low';
+                    }
+                    return bin;
+                });
+                updateBinList();
+            }, 5000);
+            
+            updateRewardValue();
+            updateBinList();
+            updateReportingPortal();
+        }
+
+        function showMessage(message, type = 'success') {
+            const box = document.getElementById('message-box');
+            box.textContent = message;
+            box.style.display = 'block';
+            let bgColor = 'bg-green-800'; /* Default success color */
+            if (type === 'error') bgColor = 'bg-red-700';
+            if (type === 'info') bgColor = 'bg-blue-700';
+            box.className = `fixed bottom-4 right-4 text-white p-4 rounded-lg shadow-xl z-50 transition-transform duration-300 transform translate-x-0 ${bgColor}`;
+            setTimeout(() => {
+                box.classList.add('translate-x-full');
+                setTimeout(() => box.style.display = 'none', 300);
+            }, 3000);
+        }
+        
+        function updateBinList() {
+            const binListContainer = document.getElementById('bin-list');
+            binListContainer.innerHTML = '';
+            let criticalCount = 0;
+
+            binData.forEach(bin => {
+                if (bin.fill > 80) criticalCount++;
+                let fillClass, markerColor;
+                if (bin.fill > 80) { fillClass = 'bg-red-500'; markerColor = 'red'; }
+                else if (bin.fill > 50) { fillClass = 'bg-yellow-500'; markerColor = 'yellow'; }
+                else { fillClass = 'bg-green-500'; markerColor = 'green'; }
+
+                const binElement = `<div class="flex items-center justify-between p-3 bg-cyan-900/50 rounded-md hover:bg-white/10 transition"><div class="flex-1"><p class="font-medium text-white">${bin.id} - ${bin.location}</p><p class="text-xs text-white/70">${bin.status}</p></div><div class="w-1/3 ml-4"><div class="h-2 w-full bg-gray-600 rounded-full"><div class="fill-bar h-2 rounded-full ${fillClass}" style="width: ${bin.fill}%"></div></div></div><p class="w-12 text-right font-bold text-sm text-white/90">${bin.fill}%</p></div>`;
+                binListContainer.innerHTML += binElement;
+
+                const icon = L.icon({
+                    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${markerColor}.png`,
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+                });
+
+                if (markers[bin.id]) {
+                    markers[bin.id].setPopupContent(`<b>${bin.id}</b><br>${bin.location}<br>Fill Level: ${bin.fill}%`).setIcon(icon);
+                } else {
+                    markers[bin.id] = L.marker(bin.coords, {icon: icon}).addTo(map).bindPopup(`<b>${bin.id}</b><br>${bin.location}<br>Fill Level: ${bin.fill}%`);
+                }
+            });
+            
+            document.getElementById('critical-bins').textContent = criticalCount;
+            document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+        }
+
+        function updateRewardValue() {
+            const pointsElement = document.getElementById('reward-points');
+            const rupeesElement = document.getElementById('reward-rupees');
+            const currentPoints = parseInt(pointsElement.textContent.replace(/,/g, ''));
+            const conversionRate = 50;
+            const rupeeValue = currentPoints / conversionRate;
+            rupeesElement.textContent = `Equivalent to ₹${rupeeValue.toFixed(2)}`;
+        }
+
+        function updateReportingPortal() {
+            const issueListContainer = document.getElementById('issue-list');
+            const openReportsCount = document.getElementById('open-reports');
+            const reportCount = document.getElementById('report-count');
+            issueListContainer.innerHTML = '';
+            const openReports = reportData.filter(report => report.status === 'Open');
+            openReportsCount.textContent = openReports.length;
+            reportCount.textContent = openReports.length;
+            if (openReports.length === 0) {
+                issueListContainer.innerHTML = `<p id="no-reports-msg" class="text-white/70">No open reports. All clear!</p>`;
+                return;
+            }
+            openReports.forEach(report => {
+                const reportElement = `<div id="report-${report.id}" class="card p-4 border-l-4 border-red-500 bg-cyan-900/50 flex justify-between items-center transition duration-200 hover:bg-white/10"><div class="flex-1 space-y-1"><p class="font-semibold text-lg text-red-400">${report.type}</p><p class="text-sm text-white/80">Location: ${report.location} (${report.date})</p><p class="text-sm text-white/60 italic">Notes: ${report.notes}</p></div><button onclick="closeReport(${report.id})" class="btn-primary px-3 py-1.5 ml-4 text-sm whitespace-nowrap font-semibold">Mark Resolved</button></div>`;
+                issueListContainer.innerHTML += reportElement;
+            });
+        }
+
+        function closeReport(id) {
+            const reportIndex = reportData.findIndex(r => r.id === id);
+            if (reportIndex !== -1) {
+                reportData[reportIndex].status = 'Resolved';
+                showMessage(`Report #${id} marked as Resolved!`, 'success');
+                updateReportingPortal();
+            }
+        }
+        
+        function showSection(id) {
+            Object.values(sections).forEach(sectionId => document.getElementById(sectionId).classList.add('hidden'));
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.add('text-white/80'); /* Adjusted for new sidebar text color */
+            });
+            document.getElementById(sections[id]).classList.remove('hidden');
+            const activeButton = document.querySelector(`.tab-button[onclick*='${id}']`);
+            activeButton.classList.add('active');
+            activeButton.classList.remove('text-white/80');
+            if (id === 'dashboard') {
+                updateBinList();
+                setTimeout(() => map.invalidateSize(), 100);
+            } else if (id === 'reporting') {
+                updateReportingPortal();
+            }
+        }
+
+        function calculateRoute() {
+            const truckId = document.getElementById('truck-id').value;
+            const startLoc = document.getElementById('start-location').value;
+            const routeOutput = document.getElementById('route-output');
+            const routeDetails = document.getElementById('route-details');
+            document.getElementById('truck-tracking-card').classList.add('hidden');
+            routeOutput.classList.remove('hidden');
+            routeDetails.innerHTML = 'Calculating optimal route using AI...';
+            showMessage(`Calculating route for ${truckId}...`, 'info');
+            setTimeout(() => {
+                const stops = [startLoc, ...binData.filter(b => b.fill > 50).map(b => b.location)];
+                if (stops.length <= 1) {
+                    routeDetails.innerHTML = `No critical bins found. Truck ${truckId} can remain idle. Estimated Cost Savings: 100%`;
+                    document.getElementById('truck-tracking-card').classList.add('hidden');
+                } else {
+                    const stopList = stops.join(' -> ');
+                    routeDetails.innerHTML = `<strong>Stops:</strong> ${stops.length} <br><strong>Optimized Path:</strong> ${stopList} <br><strong>Estimated Fuel Saved:</strong> 72% (vs manual route) <br><strong>ETA:</strong> 4 hours`;
+                    startTruckAnimation(stops);
+                }
+                showMessage(`Route generated successfully for ${truckId}.`, 'success');
+            }, 2500);
+        }
+        
+        function startTruckAnimation(stops) {
+            const trackingCard = document.getElementById('truck-tracking-card');
+            const trackingMap = document.getElementById('tracking-map');
+            const truckIcon = document.getElementById('truck-icon');
+            const statusEl = document.getElementById('tracking-status');
+            trackingCard.classList.remove('hidden');
+            trackingMap.querySelectorAll('.checkpoint, .checkpoint-label').forEach(el => el.remove());
+            truckIcon.style.left = '0%';
+            stops.forEach((stop, index) => {
+                const position = (index / (stops.length - 1)) * 100;
+                const checkpoint = document.createElement('div');
+                checkpoint.id = `checkpoint-${index}`;
+                checkpoint.className = 'checkpoint absolute top-1/2 w-4 h-4 bg-blue-500 rounded-full border-2 border-teal-900';
+                checkpoint.style.left = `${position}%`;
+                checkpoint.title = stop;
+                const label = document.createElement('div');
+                label.className = 'checkpoint-label absolute top-full mt-2 text-xs text-white/80';
+                label.style.left = `${position}%`;
+                label.textContent = stop;
+                trackingMap.appendChild(checkpoint);
+                trackingMap.appendChild(label);
+            });
+            function animateToCheckpoint(index) {
+                if (index >= stops.length) {
+                    statusEl.textContent = `Route Complete! All bins serviced.`;
+                    statusEl.className = 'text-sm text-[#A4DE02] mb-6 font-semibold';
+                    return;
+                }
+                const currentCheckpoint = document.getElementById(`checkpoint-${index}`);
+                const prevCheckpoint = document.getElementById(`checkpoint-${index - 1}`);
+                if (prevCheckpoint) prevCheckpoint.classList.remove('active');
+                statusEl.textContent = `Departing for: ${stops[index]}`;
+                statusEl.className = 'text-sm text-[#FFD447] mb-6 font-semibold';
+                const targetPosition = (index / (stops.length - 1)) * 100;
+                truckIcon.style.left = `${targetPosition}%`;
+                const travelTime = 2500, serviceTime = 2000;
+                setTimeout(() => {
+                    currentCheckpoint.classList.add('active');
+                    statusEl.textContent = `Arrived. Servicing bin at: ${stops[index]}`;
+                    statusEl.className = 'text-sm text-blue-400 mb-6 font-semibold';
+                    setTimeout(() => animateToCheckpoint(index + 1), serviceTime);
+                }, travelTime);
+            }
+            animateToCheckpoint(0);
+        }
+
+        function redeemPoints() {
+            const pointsElement = document.getElementById('reward-points');
+            const currentPoints = parseInt(pointsElement.textContent.replace(/,/g, ''));
+            const rupeeValue = (currentPoints / 50).toFixed(2);
+            if (currentPoints === 0) {
+                showMessage("You have no points to redeem.", 'info');
+                return;
+            }
+            const upiId = prompt(`You are about to redeem ${currentPoints} points for ₹${rupeeValue}.\nPlease enter your UPI ID to proceed:`, "citizen@upi");
+            if (upiId === null || upiId.trim() === "") {
+                showMessage("Redemption cancelled.", 'info');
+            } else {
+                showMessage(`Processing redemption of ₹${rupeeValue} to ${upiId}...`, 'info');
+                setTimeout(() => {
+                    pointsElement.textContent = '0';
+                    updateRewardValue();
+                    showMessage(`Success! ₹${rupeeValue} has been sent to your UPI ID. Your points have been reset.`, 'success');
+                }, 2000);
+            }
+        }
+        
+        function reportWaste() {
+            const wasteType = document.getElementById('garbage-type').value;
+            const location = document.getElementById('citizen-location').value;
+            const notes = document.getElementById('notes').value;
+            const pointsElement = document.getElementById('reward-points');
+            let currentPoints = parseInt(pointsElement.textContent.replace(/,/g, ''));
+            if (wasteType === 'Select Garbage Type' || location.trim() === '') {
+                showMessage("Please select the waste type and enter your location.", 'error');
+                return;
+            }
+            const newReportId = Math.floor(Math.random() * 900) + 100;
+            const newReport = { id: newReportId, type: wasteType, location: location, notes: notes, status: 'Open', date: new Date().toLocaleTimeString() };
+            reportData.push(newReport);
+            const pointsAwarded = 50;
+            currentPoints += pointsAwarded;
+            pointsElement.textContent = currentPoints.toLocaleString();
+            updateRewardValue();
+            showMessage(`Report submitted! You earned ${pointsAwarded} points.`, 'success');
+            document.getElementById('garbage-type').selectedIndex = 0;
+            document.getElementById('citizen-location').value = '';
+            document.getElementById('notes').value = '';
+            updateReportingPortal();
+        }
+
+        window.onload = function() {
+            // App is hidden by default. All UI initialization happens after login.
+        };
+
+    </script>
+</body>
+</html>
